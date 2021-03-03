@@ -1,4 +1,5 @@
 use proconio::input;
+use std::collections::VecDeque;
 
 fn main() {
     input! {
@@ -8,13 +9,14 @@ fn main() {
 
     a.sort_unstable_by(|a, b| b.cmp(&a));
 
-    let mut stack = vec![0];
+    let mut queue = VecDeque::new();
+    queue.push_back(0);
     let mut sum = 0;
     for i in 0..a.len() {
-        sum += stack.pop().unwrap();
-        stack.push(a[i]);
+        sum += queue.pop_front().unwrap();
+        queue.push_back(a[i]);
         if i > 0 {
-            stack.push(a[i]);
+            queue.push_back(a[i]);
         }
     }
     println!("{}", sum);
