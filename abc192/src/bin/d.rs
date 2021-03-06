@@ -29,7 +29,7 @@ fn main() {
             if (m as u128) < sum {
                 break;
             }
-            sum += x[i] as u128 * radix;
+            sum = sum.saturating_add((x[i] as u128).saturating_mul(radix));
             radix = radix.saturating_mul(mid);
         }
 
