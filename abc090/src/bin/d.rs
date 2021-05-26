@@ -13,25 +13,10 @@ fn main() {
 
     let mut sum = 0;
 
-    for i in k..n {
-        sum += n - i;
-    }
-
-    for i in (k + 1)..n {
-        // println!(
-        //     "n: {}, i: {}, k + i: {}, n / i: {}, (k + i - 1) / i: {}, sum: {},",
-        //     n,
-        //     i,
-        //     k + i,
-        //     n / i,
-        //     (k + i - 1) / i,
-        //     n - (k + i) - (n / i - (k + i - 1) / i)
-        // );
-        sum += n / i * (i - k);
-    }
-
-    for i in k..n {
-        sum -= n / i - (i + 1) / i;
+    for i in (k + 1)..=n {
+        let p = n / i;
+        let r = n % i;
+        sum += p * (i - k) + if r >= k { r - k + 1 } else { 0 };
     }
 
     println!("{}", sum);
