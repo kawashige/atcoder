@@ -27,52 +27,47 @@ fn main() {
         edges: [(usize, usize); n - 1]
     }
 
+    let m = 1_000_000_007;
     let mut lists = vec![vec![]; n];
     for (p, c) in edges {
         lists[p - 1].push(c - 1);
         lists[c - 1].push(p - 1);
     }
 
-    let mut min_colors = 0;
-    let mut stack = vec![0];
-    let mut seen = vec![false; n];
-    while let Some(node) = stack.pop() {
-        seen[node] = true;
+    let mut factorial = vec![0; std::cmp::max(n, k) + 1];
+    factorial[0] = 1;
+    factorial[1] = 1;
+    for i in 2..factorial.len() {
+        factorial[i] = i * factorial[i - 1] % m;
+    }
 
-        let mut tmp = lists[node].len() + if node == 0 { 1 } else { 0 };
-        for child in &lists[node] {
-            if seen[*child] {
-                continue;
-            }
-            tmp = std::cmp::max(tmp, lists[*child].len() + 1);
-            stack.push(*child);
+    let mut depth = vec![std::usize::MAX; n];
+    depth[0] = 0;
+
+    let mut stack = vec![0];
+    let mut count = k;
+    while let Some(n) = stack.pop() {
+        if lists[n].len() + 1 > k {
+            println!("0");
+            return;
         }
 
-        min_colors = std::cmp::max(min_colors, tmp);
+        let c = lists[n].len() - if depth[n] == 0 { 0 } else { 1 };
+        if c > 0 {
+            let r = k - if depth[n] == 0 { 1 } else { 2 };
+
+            count *= factorial[r] * modinv(factorial[r - c]) % m;
+            count %= m;
+        }
+
+        for c in &lists[n] {
+            if depth[*c] != std::usize::MAX {
+                continue;
+            }
+            depth[*c] = depth[n] + 1;
+            stack.push(*c);
+        }
     }
 
-    println!("{}", min_colors);
-
-    if min_colors > k {
-        println!("0");
-        return;
-    }
-
-    let max_colors = std::cmp::min(n, k);
-
-    let mut factorials = vec![1; k + 1];
-    for i in 2..factorials.len() {
-        factorials[i] = factorials[i - 1] * i;
-    }
-    println!("{}, {}", min_colors, max_colors);
-
-    let mut sum = 0;
-    for i in min_colors..=max_colors {
-        sum = (sum
-            + (factorials[k] * modinv(factorials[k - i]) % 1_000_000_007) * modinv(factorials[i])
-                % 1_000_000_007)
-            % 1_000_000_007;
-    }
-
-    println!("{}", sum);
+    println!("{}", count);
 }
