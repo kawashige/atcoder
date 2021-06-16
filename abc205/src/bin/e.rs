@@ -26,6 +26,11 @@ fn main() {
         k: usize
     }
 
+    if n > m + k {
+        println!("0");
+        return;
+    }
+
     let modulo: u64 = 1_000_000_007;
 
     let mut factorial = vec![0; n + m + 1];
@@ -38,23 +43,13 @@ fn main() {
     let mut sum =
         ((factorial[n + m] * modinv(factorial[n]) % modulo) * modinv(factorial[m]) % modulo) as i64;
 
-    let mut div = 0;
-    for i in (k + 1)..=n {
-        if i - (k + 1) > m {
-            break;
-        }
-        div += (((factorial[i - 1] * modinv(factorial[i - k - 1]) % modulo) * modinv(factorial[k])
-            % modulo)
-            * ((factorial[n + m - (2 * i - (k + 1))] * modinv(factorial[n - i]) % modulo)
-                * modinv(factorial[n + m - (2 * i - (k + 1)) - (n - i)])
-                % modulo)
+    if m + n >= m + k + 1 {
+        sum -= ((factorial[n + m] * modinv(factorial[m + k + 1]) % modulo)
+            * modinv(factorial[n - k - 1])
             % modulo) as i64;
-        div %= modulo as i64;
-    }
-
-    sum -= div;
-    while sum < 0 {
-        sum += modulo as i64
+        while sum < 0 {
+            sum += modulo as i64
+        }
     }
 
     println!("{}", sum);
