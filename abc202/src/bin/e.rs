@@ -1,11 +1,41 @@
+use proconio::fastout;
 use proconio::input;
 
+fn dfs(
+    i: usize,
+    d: usize,
+    list: &Vec<Vec<usize>>,
+    query: &Vec<Vec<(usize, usize)>>,
+    result: &mut Vec<i32>,
+    count: &mut Vec<usize>,
+) {
+    for (q, i) in &query[i] {
+        result[*i] = -(count[*q] as i32);
+    }
+
+    for next in &list[i] {
+        dfs(*next, d + 1, list, query, result, count);
+    }
+
+    count[d] += 1;
+
+    for (q, i) in &query[i] {
+        result[*i] += count[*q] as i32;
+    }
+}
+
+#[fastout]
 fn main() {
     input! {
         n: usize,
         p: [usize; n - 1],
         q: usize,
-        _ud: [(usize, usize); q]
+        ud: [(usize, usize); q]
+    }
+
+    let mut query = vec![vec![]; n];
+    for (i, (u, d)) in ud.into_iter().enumerate() {
+        query[u - 1].push((d, i));
     }
 
     let mut list = vec![vec![]; n];
@@ -13,14 +43,12 @@ fn main() {
         list[p[i] - 1].push(i + 1);
     }
 
-    let mut d = vec![0; n];
-    let mut stack = vec![0];
-    while let Some(node) = stack.pop() {
-        for next in &list[node] {
-            d[*next] = d[node] + 1;
-            stack.push(*next);
-        }
-    }
+    let mut result = vec![0; q];
+    let mut count = vec![0; n];
 
-    println!("{:?}", d);
+    dfs(0, 0, &list, &query, &mut result, &mut count);
+
+    for x in result {
+        println!("{:?}", x);
+    }
 }
