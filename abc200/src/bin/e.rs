@@ -2,36 +2,46 @@ use proconio::input;
 
 fn main() {
     input! {
-        n: u64,
-        k: u64
+        n: usize,
+        mut k: usize
     }
 
-    let sum = (1..=n).sum();
+    let mut dp = vec![vec![0_i64; 3_000_005]; 4];
+    dp[0][0] = 1;
 
-    let mut count = 1;
-    let mut s = 1;
-    let mut i = 3;
-    while s + if i - 1 < n { count + i - 1 } else { sum } < k {
-        count = if i - 1 < n { count + i - 1 } else { sum };
-        s += count;
-        i += 1;
-    }
-
-    i += 1;
-    let mut remains = k - s;
-    for j in 1..=n {
-        for k in 1..=n {
-            if j + k > i - 1 {
-                break;
-            }
-            if i - j - k > n {
-                continue;
-            }
-            remains -= 1;
-            if remains == 0 {
-                println!("{} {} {}", j, k, i - j - k);
-                return;
-            }
+    for i in 0..3 {
+        for j in 0..=(i * n) {
+            dp[i + 1][j + 1] += dp[i][j];
+            dp[i + 1][j + n + 1] -= dp[i][j];
         }
+        for j in 1..=((i + 1) * n) {
+            dp[i + 1][j] += dp[i + 1][j - 1];
+        }
+    }
+
+    let mut x = 0;
+    for i in 0..=(3 * n) {
+        if k <= dp[3][i] as usize {
+            x = i;
+            break;
+        } else {
+            k -= dp[3][i] as usize;
+        }
+    }
+
+    for i in 1..=n {
+        let min = if x <= i + n { 1 } else { x - i - n };
+        let max = if x < i + 1 { 0 } else { n.min(x - i - 1) };
+        if min > max {
+            continue;
+        }
+        if k > max - min + 1 {
+            k -= max - min + 1;
+            continue;
+        }
+        let y = min + k - 1;
+        let z = x - i - y;
+        println!("{} {} {}", i, y, z);
+        return;
     }
 }
