@@ -2,7 +2,13 @@ use proconio::input;
 
 fn main() {
     input! {
-        x: u64,
-        y: u64
+        x: i64,
+        y: i64
+    }
+
+    if x == y || (x - y).abs() == 1 {
+        print!("Brown");
+    } else {
+        print!("Alice");
     }
 }
