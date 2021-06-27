@@ -1,3 +1,9 @@
+use proconio::input;
+
 fn main() {
-    unimplemented!();
+    input! {
+        n: usize
+    }
+
+    println!("{}", 800 * n - (n / 15) * 200);
 }
