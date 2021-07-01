@@ -1,3 +1,9 @@
+use proconio::input;
+
 fn main() {
-    unimplemented!();
+    input! {
+        s: String
+    }
+
+    print!("{}", s.replace(",", " "));
 }
