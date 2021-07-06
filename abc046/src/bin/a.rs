@@ -1,3 +1,13 @@
+use std::collections::HashSet;
+
+use proconio::input;
+
 fn main() {
-    unimplemented!();
+    input! {
+        v: [usize; 3],
+    }
+
+    let c = v.into_iter().collect::<HashSet<usize>>().len();
+
+    println!("{}", c);
 }
