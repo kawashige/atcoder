@@ -7,5 +7,5 @@ fn main() {
         mut ac: [(usize, usize); m]
     }
 
-    ac.sort_unstable_by(|a, b| a.1.cmp(&b.1));
+    let mut dp1 = vec![vec![0; w]; h];
 }
