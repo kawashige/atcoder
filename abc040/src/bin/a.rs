@@ -1,3 +1,10 @@
+use proconio::input;
+
 fn main() {
-    unimplemented!();
+    input! {
+        n: usize,
+        x: usize
+    }
+
+    println!("{}", (x - 1).min(n - x));
 }
