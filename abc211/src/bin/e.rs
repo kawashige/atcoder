@@ -1,5 +1,46 @@
+use std::collections::HashSet;
+
 use proconio::input;
 use proconio::marker::Chars;
+
+fn dfs(current: u64, k: usize, s: &Vec<Vec<char>>, seen: &mut HashSet<u64>, count: &mut usize) {
+    if seen.contains(&current) {
+        return;
+    }
+    seen.insert(current);
+
+    if current.count_ones() as usize == k {
+        *count += 1;
+        return;
+    }
+
+    for l in 0..64 {
+        if current & 1_u64 << l == 0 {
+            continue;
+        }
+        let (i, j) = ((l / s.len() as u64) as usize, (l % s.len() as u64) as usize);
+
+        for (r, c) in [(-1, 0), (0, -1), (0, 1), (1, 0)].iter() {
+            let (x, y) = (i as i32 + r, j as i32 + c);
+            if x < 0
+                || y < 0
+                || x >= s.len() as i32
+                || y >= s[0].len() as i32
+                || s[x as usize][y as usize] == '#'
+                || current | 1 << (x as usize * s.len() + y as usize) == current
+            {
+                continue;
+            };
+            dfs(
+                current | 1 << (x as usize * s.len() + y as usize),
+                k,
+                s,
+                seen,
+                count,
+            );
+        }
+    }
+}
 
 fn main() {
     input! {
@@ -7,168 +48,16 @@ fn main() {
         k: usize,
         s: [Chars; n]
     }
-    let mut r: u64 = 0;
 
-    let mut top = vec![vec![vec![0; k + 1]; n]; n];
-    for i in 0..n {
-        for j in (0..n).rev() {
-            if s[i][j] == '#' {
-                continue;
-            }
-
-            if i > 0 && s[i - 1][j] == '.' {
-                top[i][j][0] = 1;
-            }
-            if j < n - 1 && s[i][j + 1] == '.' {
-                top[i][j][1] += 1;
-            }
-            for k in 1..k {
-                if i > 0 {
-                    top[i][j][k + 1] += top[i - 1][j][k];
-                }
-                if j < n - 1 {
-                    top[i][j][k + 1] += top[i][j + 1][k];
-                }
-            }
-        }
-    }
-
-    let mut right = vec![vec![vec![0; k + 1]; n]; n];
-    for i in (0..n).rev() {
-        for j in (0..n).rev() {
-            if s[i][j] == '#' {
-                continue;
-            }
-
-            if i < n - 1 && s[i + 1][j] == '.' {
-                right[i][j][0] = 1;
-            }
-            if j < n - 1 && s[i][j + 1] == '.' {
-                right[i][j][1] += 1;
-            }
-            for k in 1..k {
-                if i < n - 1 {
-                    right[i][j][k + 1] += right[i + 1][j][k];
-                }
-                if j < n - 1 {
-                    right[i][j][k + 1] += right[i][j + 1][k];
-                }
-            }
-        }
-    }
-
-    let mut bottom = vec![vec![vec![0; k + 1]; n]; n];
-    for i in (0..n).rev() {
-        for j in 0..n {
-            if s[i][j] == '#' {
-                continue;
-            }
-
-            if i < n - 1 && s[i + 1][j] == '.' {
-                bottom[i][j][0] = 1;
-            }
-            if j > 0 && s[i][j - 1] == '.' {
-                bottom[i][j][1] += 1;
-            }
-            for k in 1..k {
-                if i < n - 1 {
-                    bottom[i][j][k + 1] += bottom[i + 1][j][k];
-                }
-                if j > 0 {
-                    bottom[i][j][k + 1] += bottom[i][j - 1][k];
-                }
-            }
-        }
-    }
-
-    let mut left = vec![vec![vec![0; k + 1]; n]; n];
-    for j in 0..n {
-        for i in 0..n {
-            if s[i][j] == '#' {
-                continue;
-            }
-
-            if i > 0 && s[i - 1][j] == '.' {
-                left[i][j][0] = 1;
-            }
-            if j > 0 && s[i][j - 1] == '.' {
-                left[i][j][1] += 1;
-            }
-            for k in 1..k {
-                if j > 0 {
-                    left[i][j][k + 1] += left[i][j - 1][k];
-                }
-                if i > 0 {
-                    left[i][j][k + 1] += left[i - 1][j][k];
-                }
-            }
-        }
-    }
-
+    let mut count = 0;
+    let mut seen = HashSet::new();
     for i in 0..n {
         for j in 0..n {
-            if s[i][j] == '#' {
-                continue;
+            if s[i][j] == '.' {
+                dfs(1 << (i * n + j), k, &s, &mut seen, &mut count);
             }
-            let target = k - 1;
-            for a in 0..=k {
-                let mut v = top[i][j][a];
-                if v == 0 {
-                    continue;
-                }
-                for b in 0..k {
-                    if a + b > target {
-                        break;
-                    }
-                    v *= right[i][j + 1][b];
-                    for c in 0..k {
-                        if a + b + c > target {
-                            break;
-                        }
-                        if i < n - 1 && c > 0 && bottom[i + 1][j][c] == 0 {
-                            continue;
-                        }
-                        v *= if i == n - 1 || c == 0 {
-                            1
-                        } else {
-                            bottom[i + 1][j][c]
-                        };
-                        for d in 0..k {
-                            if a + b + c + d > target {
-                                break;
-                            }
-                            if j > 0 && d > 0 && left[i][j - 1][d] == 0 {
-                                continue;
-                            }
-                            if a + b + c + d == target {
-                                println!(
-                                    "i: {}, j: {}, a: {}, b: {}, c: {}, d: {}, {}, ",
-                                    i, j, a, b, c, d, v,
-                                );
-                                r += v * if j == 0 || d == 0 {
-                                    1
-                                } else {
-                                    left[i][j - 1][d]
-                                };
-                            }
-                        }
-                    }
-                }
-            }
-            println!("i: {}, j: {}, r: {}", i, j, r);
         }
     }
 
-    for i in 0..n {
-        for j in 0..n {
-            println!("i: {}, j: {}", i, j);
-            println!("top: {:?}", top[i][j]);
-            // println!("right: {:?}", right[i][j]);
-            // println!("bottom: {:?}", bottom[i][j]);
-            // println!("left: {:?}", left[i][j]);
-        }
-    }
-    println!("r: {}", r);
-
-    println!("{}", r / k as u64);
+    println!("{}", count);
 }
