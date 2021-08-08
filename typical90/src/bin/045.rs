@@ -10,42 +10,35 @@ fn main() {
     let mut d = vec![vec![0; n]; n];
 
     for i in 0..n {
-        for j in (i + 1)..n {
+        for j in 0..n {
             d[i][j] = (xy[i].0 - xy[j].0).pow(2) + (xy[i].1 - xy[j].1).pow(2);
-            d[j][i] = d[i][j];
         }
     }
 
-    let mut group = (0..n).map(|i| vec![i]).collect::<Vec<_>>();
-    let mut max_d = 0;
+    let mut cost = vec![0; 1 << n];
 
-    while group.len() > k {
-        let mut min_d = std::i64::MAX;
-        let mut min_g = (0, 0);
-        let mut min_size = 0;
-
-        for i in 0..group.len() {
-            for j in (i + 1)..group.len() {
-                let mut dist = std::i64::MIN;
-
-                for k in 0..group[i].len() {
-                    for l in 0..group[j].len() {
-                        dist = dist.max(d[group[i][k]][group[j][l]]);
-                    }
-                }
-
-                if dist < min_d || (dist == min_d && min_size < group[i].len() + group[j].len()) {
-                    min_d = dist;
-                    min_g = (i, j);
-                    min_size = group[i].len() + group[j].len();
+    for i in 1..(1 << n) {
+        for j in 0..n {
+            for k in 0..j {
+                if (i >> j & 1) > 0 && ((i >> k) & 1) > 0 {
+                    cost[i] = cost[i].max(d[j][k]);
                 }
             }
         }
-
-        let mut g = group.remove(min_g.1);
-        group[min_g.0].append(&mut g);
-        max_d = min_d;
     }
 
-    println!("{}", max_d);
+    let mut dp = vec![vec![std::i64::MAX; 1 << n]; k + 1];
+    dp[0][0] = 0;
+
+    for i in 1..=k {
+        for j in 1..(1 << n) {
+            let mut k = j;
+            while k != 0 {
+                dp[i][j] = dp[i][j].min(dp[i - 1][j - k].max(cost[k]));
+                k = (k - 1) & j;
+            }
+        }
+    }
+
+    println!("{}", dp[k][(1 << n) - 1]);
 }
