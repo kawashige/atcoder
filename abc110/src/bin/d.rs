@@ -1,33 +1,27 @@
-use std::collections::BTreeSet;
+use std::collections::HashMap;
 
 use proconio::input;
 
 const M: usize = 1_000_000_007;
 
-fn mul(matrix1: &Vec<Vec<usize>>, matrix2: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
-    let mut result = vec![vec![0; matrix1[0].len()]; matrix1.len()];
-
-    for i in 0..matrix1.len() {
-        for j in 0..matrix2[0].len() {
-            for k in 0..matrix1[0].len() {
-                result[i][j] += (matrix1[i][k] * matrix2[k][j]) % M;
-                result[i][j] %= M;
-            }
-        }
+fn modinv(a: usize) -> usize {
+    let mut a = a as i64;
+    let m = 1_000_000_007;
+    let mut b = m;
+    let mut u = 1;
+    let mut v = 0;
+    while b > 0 {
+        let t = a / b;
+        a -= t * b;
+        std::mem::swap(&mut a, &mut b);
+        u -= t * v;
+        std::mem::swap(&mut u, &mut v);
     }
-
-    result
-}
-
-fn mod_pow(matrix: &Vec<Vec<usize>>, n: usize) -> Vec<Vec<usize>> {
-    if n == 1 {
-        matrix.clone()
-    } else if n % 2 == 0 {
-        let r = mod_pow(matrix, n / 2);
-        mul(&r, &r)
-    } else {
-        mul(matrix, &mod_pow(matrix, n - 1))
+    u %= m;
+    if u < 0 {
+        u += m;
     }
+    u as usize
 }
 
 fn main() {
@@ -36,27 +30,32 @@ fn main() {
         m: usize
     }
 
-    let mut nums = BTreeSet::new();
-    for i in 1..=((m as f64).sqrt() as usize) {
-        if m % i == 0 {
-            nums.insert(i);
-            nums.insert(m / i);
-        }
+    if n == 1 {
+        println!("1");
+        return;
     }
 
-    let nums = nums.into_iter().collect::<Vec<_>>();
-
-    let mut matrix = vec![vec![0; nums.len()]; nums.len()];
-    for i in 0..nums.len() {
-        for j in i..nums.len() {
-            if nums[j] % nums[i] == 0 {
-                matrix[i][j] = 1;
-            }
+    let mut x = m;
+    let mut i = 2;
+    let mut primes = HashMap::new();
+    while x >= i {
+        while x % i == 0 {
+            *primes.entry(i).or_insert(0) += 1;
+            x /= i;
         }
+        i += 1;
     }
 
-    let matrix2 = mod_pow(&matrix, n - 1);
-    let r = matrix2[0].iter().fold(0, |acc, x| (acc + x) % M);
+    let mut factorial = vec![1; 2 * n];
+    for i in 2..factorial.len() {
+        factorial[i] = (factorial[i - 1] * i) % M;
+    }
+
+    let mut r = 1;
+    for (_, c) in primes {
+        r *= (factorial[n + c - 1] * modinv(factorial[n - 1]) % M) * modinv(factorial[c]) % M;
+        r %= M;
+    }
 
     println!("{}", r);
 }
