@@ -17,10 +17,12 @@ fn main() {
     let mut dp = vec![0; 5001];
 
     for i in 0..n {
-        for j in 1..=ab[i].0 {
-            if dp[j] > 0 {
-                r += dp[j];
-                r %= M;
+        if ab[i].1 < ab[i].0 {
+            for j in 1..=(ab[i].0 - ab[i].1) {
+                if dp[j] > 0 {
+                    r += dp[j];
+                    r %= M;
+                }
             }
         }
         if ab[i].1 <= ab[i].0 {
