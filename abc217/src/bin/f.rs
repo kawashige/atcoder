@@ -9,43 +9,39 @@ fn main() {
 
     const M: u64 = 998244353;
 
-    let mut dp = vec![vec![vec![0; n + 1]; 2 * n]; 2 * n];
-    let mut pair = vec![vec![false; 2 * n]; 2 * n];
+    let mut binom = vec![vec![0; 2 * n]; 2 * n];
+    binom[0][0] = 1;
+    for i in 1..(2 * n) {
+        binom[i][0] = 1;
+        binom[i][i] = 1;
+        for j in 0..(i - 1) {
+            binom[i][j + 1] = (binom[i - 1][j] + binom[i - 1][j + 1]) % M;
+        }
+    }
 
+    let mut can = vec![vec![false; 2 * n]; 2 * n];
     for (a, b) in ab {
-        if a + 1 == b {
-            dp[a - 1][b - 1][1] = 1;
-        }
-        pair[a - 1][b - 1] = true;
+        can[a - 1][b - 1] = true;
+        can[b - 1][a - 1] = true;
     }
 
-    for l in (4..=(2 * n)).step_by(2) {
-        for i in 0..=(2 * n - l) {
-            if pair[i][i + l - 1] {
-                for j in 1..=n {
-                    if dp[i + 1][i + l - 2][j] > 0 {
-                        dp[i][i + l - 1][j] += dp[i + 1][i + l - 2][j];
-                    }
-                }
-            }
+    let mut dp = vec![vec![0; 2 * n + 1]; 2 * n + 1];
 
-            if pair[i][i + 1] {
-                for j in 1..=n {
-                    if dp[i + 2][i + l - 1][j] > 0 {
-                        dp[i][i + l - 1][j] += dp[i + 2][i + l - 1][j] + 1;
-                    }
+    for i in 0..(2 * n + 1) {
+        dp[i][0] = 1;
+    }
+
+    for j in 1..=n {
+        for i in 0..(2 * (n - j) + 1) {
+            dp[i][j] = 0;
+            for k in 0..j {
+                if can[i][i + (2 * k) + 1] {
+                    let x = (dp[i + 1][k] * dp[i + (2 * k) + 2][j - k - 1]) % M;
+                    dp[i][j] = (x * binom[j][k + 1] + dp[i][j]) % M;
                 }
             }
         }
     }
 
-    let mut r = 0;
-    let mut factorial = 1;
-    for i in 1..=n {
-        factorial = factorial * i as u64 % M;
-        r += factorial * dp[0][2 * n - 1][i] % M;
-        r %= M
-    }
-
-    println!("{}", r);
+    println!("{}", dp[0][n]);
 }
