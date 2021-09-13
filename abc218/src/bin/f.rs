@@ -1,37 +1,6 @@
-use std::collections::HashSet;
+use std::collections::VecDeque;
 
 use proconio::input;
-
-fn dfs(
-    i: usize,
-    list: &Vec<Vec<(usize, usize)>>,
-    seen: &mut Vec<bool>,
-    path: &mut HashSet<usize>,
-    dist: &mut Vec<i32>,
-) {
-    if i == list.len() - 1 {
-        for j in 0..dist.len() {
-            if !path.contains(&j) {
-                dist[j] = dist[j].min(path.len() as i32);
-            }
-        }
-        return;
-    }
-
-    for (next, j) in &list[i] {
-        if seen[*next] {
-            continue;
-        }
-
-        seen[*next] = true;
-        path.insert(*j);
-
-        dfs(*next, list, seen, path, dist);
-
-        seen[*next] = false;
-        path.remove(j);
-    }
-}
 
 fn main() {
     input! {
@@ -40,24 +9,60 @@ fn main() {
         st: [(usize, usize); m]
     }
 
-    let mut list = vec![vec![]; n];
-    for i in 0..m {
-        list[st[i].0 - 1].push((st[i].1 - 1, i));
+    let mut g = vec![vec![-1; n]; n];
+    for (i, (s, t)) in st.iter().enumerate() {
+        g[s - 1][t - 1] = i as i32;
     }
 
-    let mut dist = vec![std::i32::MAX; m];
-    let mut seen = vec![false; n];
-    seen[0] = true;
+    let mut queue = VecDeque::new();
+    queue.push_back(0);
+    let mut dist = vec![-1; n];
+    dist[0] = 0;
+    let mut memo = vec![(0, 0); n];
+    while let Some(i) = queue.pop_front() {
+        for j in 0..n {
+            if dist[j] == -1 && g[i][j] != -1 {
+                dist[j] = dist[i] + 1;
+                memo[j] = (i, g[i][j]);
+                queue.push_back(j);
+            }
+        }
+    }
 
-    dfs(
-        0,
-        &list,
-        &mut vec![false; n],
-        &mut HashSet::new(),
-        &mut dist,
-    );
+    if dist[n - 1] == -1 {
+        for _ in 0..m {
+            println!("-1");
+        }
+        return;
+    }
 
-    for x in dist {
-        println!("{}", if x == std::i32::MAX { -1 } else { x });
+    let mut shortest_path = Vec::new();
+    let mut cur = n - 1;
+    while cur != 0 {
+        shortest_path.push(memo[cur].1);
+        cur = memo[cur].0;
+    }
+
+    let mut r = vec![dist[n - 1]; m];
+    for e in shortest_path {
+        g[st[e as usize].0 - 1][st[e as usize].1 - 1] = -1;
+        let mut queue = VecDeque::new();
+        queue.push_back(0);
+        let mut dist = vec![-1; n];
+        dist[0] = 0;
+        while let Some(i) = queue.pop_front() {
+            for j in 0..n {
+                if dist[j] == -1 && g[i][j] != -1 {
+                    dist[j] = dist[i] + 1;
+                    queue.push_back(j);
+                }
+            }
+        }
+        r[e as usize] = dist[n - 1];
+        g[st[e as usize].0 - 1][st[e as usize].1 - 1] = e;
+    }
+
+    for x in r {
+        println!("{}", x);
     }
 }
