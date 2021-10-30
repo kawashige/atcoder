@@ -1,0 +1,12 @@
+[package]
+name = "arc048"
+version = "0.1.0"
+authors = ["Takahiro Kawashige <lapavoni@gmail.com>"]
+edition = "2018"
+
+[profile.release]
+lto = true
+panic = 'abort'
+
+[dependencies]
+proconio = "0.4.3"
