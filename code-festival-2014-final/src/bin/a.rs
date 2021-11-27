@@ -1,3 +1,9 @@
+use proconio::input;
+
 fn main() {
-    unimplemented!();
+    input! {
+        s: f64
+    }
+
+    println!("{}", 50.0 / s);
 }
